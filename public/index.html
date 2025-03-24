@@ -62,22 +62,21 @@
   <script>
     let imageData = {};
 
-    // Fetch the generated image list
     fetch('/images.json')
       .then(response => response.json())
       .then(data => {
         imageData = data;
-        showImages('Jan'); // Load January by default
+        showImages('Jan');
       })
       .catch(error => console.error('Error loading images:', error));
 
     function showImages(month) {
       const collage = document.getElementById('collage');
-      collage.innerHTML = ''; // Clear current images
+      collage.innerHTML = '';
 
       const images = imageData[month] || [];
       images
-        .sort((a, b) => { // Sort highest to lowest by likes
+        .sort((a, b) => {
           const likesA = parseInt(a.split('/').pop().split('.').shift());
           const likesB = parseInt(b.split('/').pop().split('.').shift());
           return likesB - likesA;
