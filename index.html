@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Dark Mode Collage</title>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: #ffffff;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .month-buttons {
+      margin-bottom: 20px;
+    }
+    .month-buttons button {
+      background-color: #333333;
+      color: #ffffff;
+      border: 1px solid #ffffff;
+      padding: 8px 16px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .month-buttons button:hover {
+      background-color: #555555;
+    }
+    .collage {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .collage img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border: 2px solid #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Dark Mode Collage</h1>
+  <div class="month-buttons">
+    <button onclick="showMonth('Jan')">January</button>
+    <button onclick="showMonth('Feb')">February</button>
+    <button onclick="showMonth('Mar')">March</button>
+    <button onclick="showMonth('Apr')">April</button>
+    <button onclick="showMonth('May')">May</button>
+    <button onclick="showMonth('Jun')">June</button>
+    <button onclick="showMonth('Jul')">July</button>
+    <button onclick="showMonth('Aug')">August</button>
+    <button onclick="showMonth('Sep')">September</button>
+    <button onclick="showMonth('Oct')">October</button>
+    <button onclick="showMonth('Nov')">November</button>
+    <button onclick="showMonth('Dec')">December</button>
+  </div>
+  <div class="collage" id="collage"></div>
+
+  <script>
+    // List your image file names here for each month (update as you add more)
+    const images = {
+      Jan: ['images/Jan/5678.jpg', 'images/Jan/1234.jpg', 'images/Jan/0456.jpg'],
+      Feb: [], // Add February images here, e.g., 'images/Feb/7890.jpg'
+      Mar: [], Apr: [], May: [], Jun: [],
+      Jul: [], Aug: [], Sep: [], Oct: [], Nov: [], Dec: []
+    };
+
+    function showMonth(month) {
+      const collage = document.getElementById('collage');
+      collage.innerHTML = ''; // Clear current images
+
+      // Get the images for the selected month
+      let monthImages = images[month] || [];
+
+      // Sort images by likes (extract number from filename, descending order)
+      monthImages.sort((a, b) => {
+        const likesA = parseInt(a.split('/').pop().split('.').shift());
+        const likesB = parseInt(b.split('/').pop().split('.').shift());
+        return likesB - likesA; // Most likes first
+      });
+
+      // Add sorted images to the collage
+      monthImages.forEach(imgSrc => {
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        img.alt = `Image with ${imgSrc.split('/').pop().split('.').shift()} likes`;
+        collage.appendChild(img);
+      });
+    }
+
+    // Show January by default
+    showMonth('Jan');
+  </script>
+</body>
+</html>
