@@ -2,7 +2,7 @@
     "name": "bwp",
     "version": "1.0.0",
     "scripts": {
-      "build": "node scripts/generate-images.js"
+      "build": "node generate-images.js"
     },
     "dependencies": {
       "fs": "0.0.1-security",

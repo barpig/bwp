@@ -2,16 +2,14 @@
     "version": 2,
     "builds": [
       {
-        "src": "public/**",
-        "use": "@vercel/static"
+        "src": "generate-images.js",
+        "use": "@vercel/node"
       },
       {
-        "src": "scripts/generate-images.js",
-        "use": "@vercel/node"
+        "src": "public/**",
+        "use": "@vercel/static"
       }
     ],
-    "build": {
-      "command": "npm run build"
-    },
-    "outputDirectory": "public"
+    "outputDirectory": "public",
+    "buildCommand": "npm run build"
   }
