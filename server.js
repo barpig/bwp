@@ -13,8 +13,36 @@ const getMonthFolder = (monthYear) => {
     return month.charAt(0).toUpperCase() + month.slice(1, 3).toLowerCase(); // e.g., "january" -> "Jan"
 };
 
+// Helper function to get all available months
+const getAvailableMonths = async () => {
+    const monthFolders = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const years = ['2025']; // Add more years if needed (e.g., ['2025', '2026'])
+    const availableMonths = [];
+
+    for (const year of years) {
+        for (const monthFolder of monthFolders) {
+            const folderPath = path.join('images', monthFolder);
+            try {
+                const files = await fs.readdir(folderPath);
+                if (files.length > 0) {
+                    const monthIndex = monthFolders.indexOf(monthFolder);
+                    const monthName = [
+                        'january', 'february', 'march', 'april', 'may', 'june',
+                        'july', 'august', 'september', 'october', 'november', 'december'
+                    ][monthIndex];
+                    availableMonths.push(`${monthName}-${year}`);
+                }
+            } catch (err) {
+                // Folder doesn't exist or is empty, skip it
+            }
+        }
+    }
+
+    return availableMonths.sort(); // Sort chronologically
+};
+
 // Helper function to get previous and next months
-const getAdjacentMonths = (monthYear) => {
+const getAdjacentMonths = (monthYear, availableMonths) => {
     const [month, year] = monthYear.split('-');
     const monthNames = [
         'january', 'february', 'march', 'april', 'may', 'june',
@@ -23,21 +51,47 @@ const getAdjacentMonths = (monthYear) => {
     const monthIndex = monthNames.indexOf(month.toLowerCase());
     const currentYear = parseInt(year);
 
-    const prevMonthIndex = monthIndex === 0 ? 11 : monthIndex - 1;
-    const nextMonthIndex = monthIndex === 11 ? 0 : monthIndex + 1;
-    const prevYear = monthIndex === 0 ? currentYear - 1 : currentYear;
-    const nextYear = monthIndex === 11 ? currentYear + 1 : currentYear;
+    const currentPosition = availableMonths.indexOf(`${month.toLowerCase()}-${year}`);
+    const prevMonth = currentPosition > 0 ? availableMonths[currentPosition - 1] : null;
+    const nextMonth = currentPosition < availableMonths.length - 1 ? availableMonths[currentPosition + 1] : null;
 
-    return {
-        prev: `${monthNames[prevMonthIndex]}-${prevYear}`,
-        next: `${monthNames[nextMonthIndex]}-${nextYear}`
-    };
+    return { prev: prevMonth, next: nextMonth };
 };
+
+// Landing page: List all available months
+app.get('/', async (req, res) => {
+    const availableMonths = await getAvailableMonths();
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Beautiful Women Collage</title>
+            <link rel="stylesheet" href="/styles.css">
+        </head>
+        <body>
+            <header>
+                <h1>Beautiful Women Collage</h1>
+                <nav class="month-nav">
+                    ${availableMonths.map(month => `
+                        <a href="/${month}">${month.replace('-', ' ')}</a>
+                    `).join(' | ')}
+                </nav>
+            </header>
+            <div class="gallery">
+                <p>Select a month to view the gallery.</p>
+            </div>
+        </body>
+        </html>
+    `);
+});
 
 // Route to serve the HTML for a specific month
 app.get('/:monthYear', async (req, res) => {
     const monthYear = req.params.monthYear.toLowerCase(); // e.g., "january-2025"
     const monthFolder = getMonthFolder(monthYear); // e.g., "Jan"
+    const availableMonths = await getAvailableMonths();
 
     try {
         // Read all files in the month's folder
@@ -58,7 +112,7 @@ app.get('/:monthYear', async (req, res) => {
         const bottomRow = images.slice(7, 15); // 8 small images
 
         // Get previous and next months for navigation
-        const { prev, next } = getAdjacentMonths(monthYear);
+        const { prev, next } = getAdjacentMonths(monthYear, availableMonths);
 
         // Generate HTML
         res.send(`
@@ -73,8 +127,14 @@ app.get('/:monthYear', async (req, res) => {
             <body>
                 <header>
                     <h1>${monthYear.replace('-', ' ')}</h1>
-                    <nav>
-                        <a href="/${prev}">Previous</a> | <a href="/${next}">Next</a>
+                    <nav class="month-nav">
+                        ${availableMonths.map(month => `
+                            <a href="/${month}" ${month === monthYear ? 'class="active"' : ''}>${month.replace('-', ' ')}</a>
+                        `).join(' | ')}
+                    </nav>
+                    <nav class="prev-next-nav">
+                        ${prev ? `<a href="/${prev}">Previous</a>` : '<span>Previous</span>'} | 
+                        ${next ? `<a href="/${next}">Next</a>` : '<span>Next</span>'}
                     </nav>
                 </header>
                 <div class="gallery">
@@ -113,11 +173,6 @@ app.get('/:monthYear', async (req, res) => {
     } catch (err) {
         res.status(500).send(`Error loading images for ${monthFolder}: ${err.message}`);
     }
-});
-
-// Default route (optional, redirect to the first month)
-app.get('/', (req, res) => {
-    res.redirect('/january-2025');
 });
 
 module.exports = app; // Export for Vercel

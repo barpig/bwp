@@ -20,19 +20,44 @@ h1 {
     font-size: 2.5rem;
 }
 
-nav {
+.month-nav {
     text-align: center;
     margin-top: 10px;
+    margin-bottom: 10px;
 }
 
-nav a {
+.month-nav a {
     color: #ffffff;
     text-decoration: none;
     margin: 0 10px;
 }
 
-nav a:hover {
+.month-nav a:hover {
     text-decoration: underline;
+}
+
+.month-nav a.active {
+    font-weight: bold;
+    color: #ffcc00; /* Highlight the active month */
+}
+
+.prev-next-nav {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.prev-next-nav a, .prev-next-nav span {
+    color: #ffffff;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.prev-next-nav a:hover {
+    text-decoration: underline;
+}
+
+.prev-next-nav span {
+    color: #666; /* Dimmed color for disabled Previous/Next */
 }
 
 .gallery {
@@ -122,5 +147,10 @@ nav a:hover {
     }
     .bottom-row {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+
+    .month-nav a {
+        display: inline-block;
+        margin: 5px 10px;
     }
 }
