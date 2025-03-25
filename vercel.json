@@ -7,8 +7,14 @@
         "config": {
           "includeFiles": ["images/**", "public/**"]
         }
+      },
+      {
+        "src": "public/**",
+        "use": "@vercel/static"
       }
     ],
+    "buildCommand": "node generate-images.js",
+    "outputDirectory": "public",
     "routes": [
       {
         "src": "/(.*)",
@@ -17,6 +23,5 @@
           "Cache-Control": "no-cache"
         }
       }
-    ],
-    "outputDirectory": "public"
+    ]
   }
