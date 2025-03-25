@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,53 +40,101 @@
       object-fit: cover;
       border: 2px solid #ffffff;
     }
+    .month-section {
+      display: none;
+    }
+    .month-section.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
   <h1>My Dark Mode Collage</h1>
   <div class="month-buttons">
-    <button onclick="fetchImages('Jan')">January</button>
-    <button onclick="fetchImages('Feb')">February</button>
-    <button onclick="fetchImages('Mar')">March</button>
-    <button onclick="fetchImages('Apr')">April</button>
-    <button onclick="fetchImages('May')">May</button>
-    <button onclick="fetchImages('Jun')">June</button>
-    <button onclick="fetchImages('Jul')">July</button>
-    <button onclick="fetchImages('Aug')">August</button>
-    <button onclick="fetchImages('Sep')">September</button>
-    <button onclick="fetchImages('Oct')">October</button>
-    <button onclick="fetchImages('Nov')">November</button>
-    <button onclick="fetchImages('Dec')">December</button>
+    <button onclick="showMonth('Jan')">January</button><button onclick="showMonth('Feb')">February</button><button onclick="showMonth('Mar')">March</button><button onclick="showMonth('Apr')">April</button><button onclick="showMonth('May')">May</button><button onclick="showMonth('Jun')">June</button><button onclick="showMonth('Jul')">July</button><button onclick="showMonth('Aug')">August</button><button onclick="showMonth('Sep')">September</button><button onclick="showMonth('Oct')">October</button><button onclick="showMonth('Nov')">November</button><button onclick="showMonth('Dec')">December</button>
   </div>
-  <div class="collage" id="collage"></div>
+  
+    <div id="Jan" class="month-section active">
+      <div class="collage">
+        <img src="/images/Jan/3600.jpg" alt="Image with 3600 likes"><img src="/images/Jan/1400.jpg" alt="Image with 1400 likes"><img src="/images/Jan/615.jpg" alt="Image with 615 likes">
+      </div>
+    </div>
+  
+    <div id="Feb" class="month-section">
+      <div class="collage">
+        <img src="/images/Feb/687.jpg" alt="Image with 687 likes">
+      </div>
+    </div>
+  
+    <div id="Mar" class="month-section">
+      <div class="collage">
+        
+      </div>
+    </div>
+  
+    <div id="Apr" class="month-section">
+      <div class="collage">
+        
+      </div>
+    </div>
+  
+    <div id="May" class="month-section">
+      <div class="collage">
+        
+      </div>
+    </div>
+  
+    <div id="Jun" class="month-section">
+      <div class="collage">
+        
+      </div>
+    </div>
+  
+    <div id="Jul" class="month-section">
+      <div class="collage">
+        
+      </div>
+    </div>
+  
+    <div id="Aug" class="month-section">
+      <div class="collage">
+        
+      </div>
+    </div>
+  
+    <div id="Sep" class="month-section">
+      <div class="collage">
+        
+      </div>
+    </div>
+  
+    <div id="Oct" class="month-section">
+      <div class="collage">
+        
+      </div>
+    </div>
+  
+    <div id="Nov" class="month-section">
+      <div class="collage">
+        
+      </div>
+    </div>
+  
+    <div id="Dec" class="month-section">
+      <div class="collage">
+        
+      </div>
+    </div>
+  
 
   <script>
-    async function fetchImages(month) {
-      const collage = document.getElementById('collage');
-      collage.innerHTML = '';
-
-      try {
-        const response = await fetch(`/api/list-images?month=${month}`);
-        const images = await response.json();
-
-        images
-          .sort((a, b) => {
-            const likesA = parseInt(a.split('/').pop().split('.').shift());
-            const likesB = parseInt(b.split('/').pop().split('.').shift());
-            return likesB - likesA;
-          })
-          .forEach(src => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.alt = `Image with ${src.split('/').pop().split('.').shift()} likes`;
-            collage.appendChild(img);
-          });
-      } catch (error) {
-        console.error('Error fetching images:', error);
-      }
+    function showMonth(month) {
+      document.querySelectorAll('.month-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(month).classList.add('active');
     }
-
-    fetchImages('Jan');
   </script>
 </body>
 </html>
+  
