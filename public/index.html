@@ -44,50 +44,48 @@
 <body>
   <h1>My Dark Mode Collage</h1>
   <div class="month-buttons">
-    <button onclick="showImages('Jan')">January</button>
-    <button onclick="showImages('Feb')">February</button>
-    <button onclick="showImages('Mar')">March</button>
-    <button onclick="showImages('Apr')">April</button>
-    <button onclick="showImages('May')">May</button>
-    <button onclick="showImages('Jun')">June</button>
-    <button onclick="showImages('Jul')">July</button>
-    <button onclick="showImages('Aug')">August</button>
-    <button onclick="showImages('Sep')">September</button>
-    <button onclick="showImages('Oct')">October</button>
-    <button onclick="showImages('Nov')">November</button>
-    <button onclick="showImages('Dec')">December</button>
+    <button onclick="fetchImages('Jan')">January</button>
+    <button onclick="fetchImages('Feb')">February</button>
+    <button onclick="fetchImages('Mar')">March</button>
+    <button onclick="fetchImages('Apr')">April</button>
+    <button onclick="fetchImages('May')">May</button>
+    <button onclick="fetchImages('Jun')">June</button>
+    <button onclick="fetchImages('Jul')">July</button>
+    <button onclick="fetchImages('Aug')">August</button>
+    <button onclick="fetchImages('Sep')">September</button>
+    <button onclick="fetchImages('Oct')">October</button>
+    <button onclick="fetchImages('Nov')">November</button>
+    <button onclick="fetchImages('Dec')">December</button>
   </div>
   <div class="collage" id="collage"></div>
 
   <script>
-    let imageData = {};
-
-    fetch('/images.json')
-      .then(response => response.json())
-      .then(data => {
-        imageData = data;
-        showImages('Jan');
-      })
-      .catch(error => console.error('Error loading images:', error));
-
-    function showImages(month) {
+    async function fetchImages(month) {
       const collage = document.getElementById('collage');
       collage.innerHTML = '';
 
-      const images = imageData[month] || [];
-      images
-        .sort((a, b) => {
-          const likesA = parseInt(a.split('/').pop().split('.').shift());
-          const likesB = parseInt(b.split('/').pop().split('.').shift());
-          return likesB - likesA;
-        })
-        .forEach(src => {
-          const img = document.createElement('img');
-          img.src = src;
-          img.alt = `Image with ${src.split('/').pop().split('.').shift()} likes`;
-          collage.appendChild(img);
-        });
+      try {
+        const response = await fetch(`/api/list-images?month=${month}`);
+        const images = await response.json();
+
+        images
+          .sort((a, b) => {
+            const likesA = parseInt(a.split('/').pop().split('.').shift());
+            const likesB = parseInt(b.split('/').pop().split('.').shift());
+            return likesB - likesA;
+          })
+          .forEach(src => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = `Image with ${src.split('/').pop().split('.').shift()} likes`;
+            collage.appendChild(img);
+          });
+      } catch (error) {
+        console.error('Error fetching images:', error);
+      }
     }
+
+    fetchImages('Jan');
   </script>
 </body>
 </html>
