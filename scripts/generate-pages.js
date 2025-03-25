@@ -13,7 +13,7 @@ async function generatePages() {
       const files = await fs.readdir(dirPath);
       imageData[month] = files
         .filter(file => file.endsWith('.jpg'))
-        .map(file => `/images/${month}/${file}`)
+        .map(file => `https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/${month}/${file}`)
         .sort((a, b) => {
           const likesA = parseInt(a.split('/').pop().split('.').shift());
           const likesB = parseInt(b.split('/').pop().split('.').shift());
