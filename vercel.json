@@ -3,13 +3,17 @@
     "builds": [
       {
         "src": "generate-images.js",
-        "use": "@vercel/node"
-      },
-      {
-        "src": "public/**",
-        "use": "@vercel/static"
+        "use": "@vercel/node",
+        "config": {
+          "includeFiles": ["images/**"]
+        }
       }
     ],
-    "outputDirectory": "public",
-    "buildCommand": "npm run build"
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "public/$1"
+      }
+    ],
+    "outputDirectory": "public"
   }
