@@ -89,50 +89,30 @@ async function generatePages() {
       justify-content: center; /* Center images horizontally in the row */
       align-items: center; /* Center images vertically in the row */
       margin-bottom: 2px; /* Reduced gap between rows */
+      position: relative;
     }
     .image-container {
       position: relative;
-      margin: 0; /* Remove margin to use gap */
-      height: 200px; /* Fixed height for row 1 */
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       overflow: hidden; /* Ensure the glow effect doesn't overflow */
-    }
-    .row2-3 .image-container {
-      height: 150px; /* Fixed height for rows 2+ */
     }
     .tilt-wrapper {
       position: relative; /* Ensure the overlay positions correctly */
       display: block; /* Ensure the wrapper fills its container */
       width: 100%;
-      height: 100%; /* Fill the container */
       cursor: pointer; /* Ensure the wrapper is clickable */
     }
     .collage img {
       width: 100%;
-      height: 100%; /* Fill the container height */
-      object-fit: cover;
+      height: auto; /* Preserve aspect ratio, no cropping */
+      object-fit: contain; /* Show the entire image without cropping */
       object-position: center; /* Center the image within the container */
       border: none; /* No white borders */
       border-radius: 5px;
       display: block; /* Remove any inline-block spacing */
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); /* Glow effect */
-    }
-    /* Pseudo-element to create a shaded abstract background */
-    .image-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.5),
-        rgba(0, 0, 0, 0.3),
-        rgba(0, 0, 0, 0.5)
-      ); /* Placeholder gradient; ideally a blurred version of the image */
-      filter: blur(10px);
-      z-index: -1; /* Behind the image */
-      opacity: 0.7; /* Subtle effect */
     }
     /* Scaled widths to reduce blank space */
     .row1 .image-container {
@@ -239,8 +219,9 @@ async function generatePages() {
         <div class="row ${rowClass}">
           ${rowImages.map(src => {
             const likes = parseInt(src.split('/').pop().split('.').shift());
+            const blurredSrc = src.replace('.jpg', '-blurred.jpg'); // Placeholder for blurred image URL
             return `
-              <div class="image-container">
+              <div class="image-container" style="background: url('${blurredSrc}') center center / cover no-repeat; background-size: 150%;">
                 <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('${src}')">
                   <img src="${src}" alt="Image with ${likes} likes">
                   <div class="likes-overlay">${likes}</div>
@@ -282,6 +263,37 @@ async function generatePages() {
       });
       document.getElementById(month).classList.add('active');
       initTilt();
+      adjustRowHeights();
+    }
+
+    function adjustRowHeights() {
+      document.querySelectorAll('.month-section.active .row').forEach(row => {
+        let maxHeight = 0;
+        const containers = row.querySelectorAll('.image-container');
+        const images = row.querySelectorAll('img');
+
+        // Reset heights to measure natural height
+        containers.forEach(container => {
+          container.style.height = 'auto';
+        });
+        images.forEach(img => {
+          img.style.height = 'auto';
+        });
+
+        // Find the tallest image
+        images.forEach(img => {
+          const height = img.getBoundingClientRect().height;
+          if (height > maxHeight) {
+            maxHeight = height;
+          }
+        });
+
+        // Set the row and containers to the tallest height
+        row.style.height = maxHeight + 'px';
+        containers.forEach(container => {
+          container.style.height = maxHeight + 'px';
+        });
+      });
     }
 
     function initTilt() {
@@ -318,6 +330,8 @@ async function generatePages() {
       }
     }
 
+    // Run adjustRowHeights after images load
+    window.addEventListener('load', adjustRowHeights);
     initTilt();
   </script>
 </body>
