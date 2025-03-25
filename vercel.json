@@ -5,14 +5,17 @@
         "src": "generate-images.js",
         "use": "@vercel/node",
         "config": {
-          "includeFiles": ["images/**"]
+          "includeFiles": ["images/**", "public/**"]
         }
       }
     ],
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "public/$1"
+        "dest": "/public/$1",
+        "headers": {
+          "Cache-Control": "no-cache"
+        }
       }
     ],
     "outputDirectory": "public"
