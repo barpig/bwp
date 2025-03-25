@@ -40,45 +40,77 @@
       max-width: 1200px; /* Fixed width for the display rectangle */
       margin: 0 auto; /* Center the container */
       border: 5px solid #ffffff; /* White border on all sides */
-      padding: 0; /* No padding to reduce blank space */
+      padding: 2px; /* Reduced padding to minimize blank space */
       box-sizing: border-box;
-      background-color: #2a2a2a; /* Slightly lighter background for contrast */
+      /* Placeholder gradient background; replace with a blurred image */
+      background: linear-gradient(135deg, rgba(50, 50, 50, 0.8), rgba(20, 20, 20, 0.8));
+      position: relative;
+      overflow: hidden;
     }
     .collage {
       display: block; /* Use block to stack rows */
       width: 100%;
+      position: relative;
+      z-index: 1; /* Ensure images are above the background */
     }
     .row {
       display: flex; /* Each row is a flex container */
       flex-wrap: nowrap; /* Prevent wrapping within a row */
-      gap: 0px; /* No gap between images */
-      justify-content: space-between; /* Distribute space evenly */
-      margin-bottom: 0px; /* No gap between rows */
+      gap: 2px; /* Reduced gap between images */
+      justify-content: center; /* Center images horizontally in the row */
+      align-items: center; /* Center images vertically in the row */
+      margin-bottom: 2px; /* Reduced gap between rows */
     }
     .image-container {
       position: relative;
       margin: 0; /* Remove margin to use gap */
+      height: 200px; /* Fixed height for row 1 */
+      overflow: hidden; /* Ensure the glow effect doesn't overflow */
+    }
+    .row2-3 .image-container {
+      height: 150px; /* Fixed height for rows 2+ */
     }
     .tilt-wrapper {
       position: relative; /* Ensure the overlay positions correctly */
       display: block; /* Ensure the wrapper fills its container */
       width: 100%;
+      height: 100%; /* Fill the container */
       cursor: pointer; /* Ensure the wrapper is clickable */
     }
     .collage img {
       width: 100%;
-      height: auto;
+      height: 100%; /* Fill the container height */
       object-fit: cover;
-      border: 2px solid #ffffff;
+      object-position: center; /* Center the image within the container */
+      border: none; /* No white borders */
       border-radius: 5px;
       display: block; /* Remove any inline-block spacing */
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); /* Glow effect */
     }
-    /* Uniform widths for each row */
+    /* Pseudo-element to create a shaded abstract background */
+    .image-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.5),
+        rgba(0, 0, 0, 0.3),
+        rgba(0, 0, 0, 0.5)
+      ); /* Placeholder gradient; ideally a blurred version of the image */
+      filter: blur(10px);
+      z-index: -1; /* Behind the image */
+      opacity: 0.7; /* Subtle effect */
+    }
+    /* Scaled widths to reduce blank space */
     .row1 .image-container {
-      width: 300px; /* 1200px / 4 = 300px */
+      width: 298px; /* (1200px - 2px padding * 2 - 3 * 2px gap) / 4 = 298px */
     }
     .row2-3 .image-container {
-      width: 200px; /* 1200px / 6 = 200px */
+      width: 198px; /* (1200px - 2px padding * 2 - 5 * 2px gap) / 6 = 198px */
     }
     .month-section {
       display: none;
@@ -146,7 +178,7 @@
         width: auto;
         height: auto;
         object-fit: contain;
-        border: 2px solid #ffffff;
+        border: none; /* No white borders in modal */
         border-radius: 5px;
         display: block; /* Remove any inline-block spacing */
     }
