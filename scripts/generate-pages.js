@@ -26,7 +26,7 @@ async function generatePages() {
     }
   }
 
-  // Generate HTML
+  // Generate HTML with dynamic scaling and likes overlay
   const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -58,22 +58,93 @@ async function generatePages() {
       background-color: #555555;
     }
     .collage {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-gap: 10px;
+      justify-items: center;
+      padding: 10px;
+    }
+    .image-container {
+      position: relative;
+      width: 100%;
     }
     .collage img {
-      width: 200px;
-      height: 200px;
+      width: 100%;
+      height: auto;
       object-fit: cover;
       border: 2px solid #ffffff;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    /* Dynamic sizing classes */
+    .size-large {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+    .size-medium {
+      grid-column: span 1;
+      grid-row: span 2;
+    }
+    .size-small {
+      grid-column: span 1;
+      grid-row: span 1;
     }
     .month-section {
       display: none;
     }
     .month-section.active {
       display: block;
+    }
+    /* Likes overlay */
+    .likes-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #ffffff;
+      padding: 5px 10px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-size: 14px;
+    }
+    .image-container:hover .likes-overlay {
+      opacity: 1;
+    }
+    .likes-overlay::before {
+      content: '❤️';
+      margin-right: 5px;
+    }
+    /* Full-screen modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal .image-container {
+      width: auto;
+      height: auto;
+      max-width: 90%;
+      max-height: 90%;
+    }
+    .modal img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border: 2px solid #ffffff;
+      border-radius: 5px;
     }
   </style>
 </head>
@@ -85,18 +156,74 @@ async function generatePages() {
   ${months.map(month => `
     <div id="${month}" class="month-section${month === 'Jan' ? ' active' : ''}">
       <div class="collage">
-        ${imageData[month].map(src => `<img src="${src}" alt="Image with ${src.split('/').pop().split('.').shift()} likes">`).join('')}
+        ${imageData[month].map((src, index) => {
+          const sizeClass = index % 5 === 0 ? 'size-large' : index % 3 === 0 ? 'size-medium' : 'size-small';
+          const likes = src.split('/').pop().split('.').shift();
+          return `
+            <div class="image-container ${sizeClass}">
+              <img src="${src}" alt="Image with ${likes} likes" class="tilt-image" onclick="toggleFullScreen('${src}')">
+              <div class="likes-overlay">${likes}</div>
+            </div>
+          `;
+        }).join('')}
       </div>
     </div>
   `).join('')}
 
+  <!-- Full-screen modal -->
+  <div id="modal" class="modal" onclick="toggleFullScreen()">
+    <div class="image-container">
+      <img id="modal-image" class="tilt-image" src="" alt="">
+      <div class="likes-overlay" id="modal-likes"></div>
+    </div>
+  </div>
+
+  <!-- Include vanilla-tilt via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
   <script>
     function showMonth(month) {
       document.querySelectorAll('.month-section').forEach(section => {
         section.classList.remove('active');
       });
       document.getElementById(month).classList.add('active');
+      initTilt();
     }
+
+    function initTilt() {
+      VanillaTilt.init(document.querySelectorAll('.month-section.active .tilt-image'), {
+        max: 15,
+        speed: 400,
+        glare: true,
+        'max-glare': 0.5
+      });
+      VanillaTilt.init(document.querySelectorAll('#modal-image'), {
+        max: 15,
+        speed: 400,
+        glare: true,
+        'max-glare': 0.5
+      });
+    }
+
+    let currentImage = null;
+    function toggleFullScreen(src) {
+      const modal = document.getElementById('modal');
+      const modalImage = document.getElementById('modal-image');
+      const modalLikes = document.getElementById('modal-likes');
+
+      if (modal.classList.contains('active')) {
+        modal.classList.remove('active');
+        currentImage = null;
+      } else if (src) {
+        modalImage.src = src;
+        const likes = src.split('/').pop().split('.').shift();
+        modalLikes.textContent = likes;
+        modal.classList.add('active');
+        currentImage = src;
+        initTilt();
+      }
+    }
+
+    initTilt();
   </script>
 </body>
 </html>
