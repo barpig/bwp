@@ -1,10 +1,53 @@
 const fs = require('fs').promises;
 const path = require('path');
+const ffmpeg = require('fluent-ffmpeg');
+
+// Ensure FFmpeg is installed and accessible
+// If you're using ffmpeg-static, uncomment the following line:
+// ffmpeg.setFfmpegPath(require('ffmpeg-static'));
 
 async function generatePages() {
   console.log('Starting page generation...');
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const mediaData = {};
+
+  // Generate thumbnails for videos
+  for (const month of months) {
+    const videoDirPath = path.join(__dirname, '../videos', month);
+    const imageDirPath = path.join(__dirname, '../images', month);
+    try {
+      // Ensure the images directory exists
+      await fs.mkdir(imageDirPath, { recursive: true });
+      const videoFiles = await fs.readdir(videoDirPath);
+      for (const file of videoFiles.filter(f => f.endsWith('.mp4'))) {
+        const videoPath = path.join(videoDirPath, file);
+        const thumbnailPath = path.join(imageDirPath, file.replace('.mp4', '-thumbnail.jpg'));
+        try {
+          await new Promise((resolve, reject) => {
+            ffmpeg(videoPath)
+              .screenshots({
+                count: 1,
+                folder: imageDirPath,
+                filename: file.replace('.mp4', '-thumbnail.jpg'),
+                timemarks: ['0'] // Extract the first frame
+              })
+              .on('end', () => {
+                console.log(`Generated thumbnail for ${file}`);
+                resolve();
+              })
+              .on('error', (err) => {
+                console.error(`Error generating thumbnail for ${file}:`, err);
+                reject(err);
+              });
+          });
+        } catch (error) {
+          console.error(`Failed to generate thumbnail for ${file}:`, error);
+        }
+      }
+    } catch (error) {
+      console.log(`No videos found for ${month}`);
+    }
+  }
 
   // Scan images and videos for each month
   for (const month of months) {
@@ -15,7 +58,7 @@ async function generatePages() {
     try {
       const imageFiles = await fs.readdir(imageDirPath);
       mediaData[month].images = imageFiles
-        .filter(file => file.endsWith('.jpg'))
+        .filter(file => file.endsWith('.jpg') && !file.includes('-thumbnail') && !file.includes('-blurred'))
         .map(file => ({
           type: 'image',
           src: `https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/${month}/${file}`,
@@ -273,15 +316,15 @@ async function generatePages() {
       <div class="collage-container">
         <div class="collage">
           ${media.map(item => {
-            const thumbnailSrc = item.src.replace('.mp4', '-thumbnail.jpg').replace('.jpg', '-thumbnail.jpg'); // Use thumbnail for poster
-            const blurredSrc = item.src.replace('.mp4', '-blurred.jpg').replace('.jpg', '-blurred.jpg'); // Use blurred for ambient effect
+            const thumbnailSrc = item.src.replace('.mp4', '-thumbnail.jpg').replace('.jpg', '-thumbnail.jpg');
+            const blurredSrc = item.src.replace('.mp4', '-blurred.jpg').replace('.jpg', '-blurred.jpg');
             return `
               <div class="image-container" style="background: url('${blurredSrc}') center center / cover no-repeat; background-size: 150%;">
                 <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('${item.src}', '${item.type}')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
                   ${item.type === 'image' ? `
                     <img src="${item.src}" alt="Image with ${item.likes} likes">
                   ` : `
-                    <video muted playsinline poster="${thumbnailSrc}">
+                    <video muted playsinline loop poster="${thumbnailSrc}">
                       <source src="${item.src}" type="video/mp4">
                       Your browser does not support the video tag.
                     </video>
