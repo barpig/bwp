@@ -414,39 +414,19 @@ async function generatePages() {
           modalVideo.load();
           modalVideo.style.display = 'block';
           modalImage.style.display = 'none';
+          // Start playing the video immediately
+          const playPromise = modalVideo.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(error => {
+              console.error('Video playback failed in modal:', error);
+            });
+          }
           // Check if the video has audio and unmute if it does
           modalVideo.onloadedmetadata = () => {
-            // Use audioTracks if available (modern browsers)
             if (modalVideo.audioTracks && modalVideo.audioTracks.length > 0) {
               modalVideo.muted = false;
-            } else {
-              // Fallback: Attempt to play and check for audio (for broader compatibility)
-              const playPromise = modalVideo.play();
-              if (playPromise !== undefined) {
-                playPromise.then(() => {
-                  // Create a temporary audio context to check for audio
-                  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                  const source = audioContext.createMediaElementSource(modalVideo);
-                  const analyser = audioContext.createAnalyser();
-                  source.connect(analyser);
-                  analyser.connect(audioContext.destination);
-                  const frequencyData = new Uint8Array(analyser.frequencyBinCount);
-                  analyser.getByteFrequencyData(frequencyData);
-                  const hasAudio = frequencyData.some(value => value > 0);
-                  if (hasAudio) {
-                    modalVideo.muted = false;
-                  }
-                  // Clean up
-                  source.disconnect();
-                  analyser.disconnect();
-                  audioContext.close();
-                }).catch(error => {
-                  console.error('Error checking audio:', error);
-                });
-              }
             }
           };
-          modalVideo.play();
         }
         const likes = src.split('/').pop().split('.').shift();
         modalLikes.textContent = likes;
@@ -463,7 +443,7 @@ async function generatePages() {
         const playPromise = video.play();
         if (playPromise !== undefined) {
           playPromise.catch(error => {
-            console.error('Video playback failed:', error);
+            console.error('Video playback failed in gallery:', error);
           });
         }
       }
