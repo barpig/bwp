@@ -402,6 +402,7 @@ async function generatePages() {
         modalImage.style.display = 'none';
         modalVideo.style.display = 'none';
         modalVideo.pause();
+        modalVideo.muted = true; // Mute the video when closing the modal
         currentMedia = null;
         currentMediaType = null;
       } else if (src && type) {
