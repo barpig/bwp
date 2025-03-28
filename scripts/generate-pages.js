@@ -415,6 +415,8 @@ async function generatePages() {
           modalVideo.load();
           modalVideo.style.display = 'block';
           modalImage.style.display = 'none';
+          // Reset muted state to true before loading new video
+          modalVideo.muted = true;
           // Start playing the video immediately
           const playPromise = modalVideo.play();
           if (playPromise !== undefined) {
