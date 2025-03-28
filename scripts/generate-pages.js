@@ -519,16 +519,30 @@ async function generatePages() {
       }
     }
 
-    // View Count Logic
+    // View Count Logic using CountAPI
     (function() {
-      // Increment view count in localStorage
-      let viewCount = localStorage.getItem('viewCount') || 0;
-      viewCount = parseInt(viewCount) + 1;
-      localStorage.setItem('viewCount', viewCount);
-
-      // Update view count display
       const viewCountElement = document.getElementById('view-count-value');
-      viewCountElement.textContent = viewCount;
+
+      // Function to fetch and increment the view count
+      async function updateViewCount() {
+        try {
+          // Increment the view count using CountAPI
+          const response = await fetch('https://api.countapi.xyz/hit/g.rendo.club/views');
+          const data = await response.json();
+          if (data && data.value) {
+            viewCountElement.textContent = data.value;
+          } else {
+            console.error('Failed to fetch view count:', data);
+            viewCountElement.textContent = 'Error';
+          }
+        } catch (error) {
+          console.error('Error updating view count:', error);
+          viewCountElement.textContent = 'Error';
+        }
+      }
+
+      // Update view count on page load
+      updateViewCount();
 
       // Toggle view count visibility on Ctrl+Alt+V
       document.addEventListener('keydown', (event) => {
