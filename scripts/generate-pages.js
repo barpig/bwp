@@ -4,35 +4,54 @@ const path = require('path');
 async function generatePages() {
   console.log('Starting page generation...');
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const imageData = {};
+  const mediaData = {};
 
-  // Scan images for each month
+  // Scan images and videos for each month
   for (const month of months) {
-    const dirPath = path.join(__dirname, '../images', month);
+    mediaData[month] = { images: [], videos: [] };
+
+    // Scan images
+    const imageDirPath = path.join(__dirname, '../images', month);
     try {
-      const files = await fs.readdir(dirPath);
-      imageData[month] = files
+      const imageFiles = await fs.readdir(imageDirPath);
+      mediaData[month].images = imageFiles
         .filter(file => file.endsWith('.jpg'))
-        .map(file => `https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/${month}/${file}`)
-        .sort((a, b) => {
-          const likesA = parseInt(a.split('/').pop().split('.').shift());
-          const likesB = parseInt(b.split('/').pop().split('.').shift());
-          return likesB - likesA;
-        });
-      console.log(`Found ${imageData[month].length} images for ${month}`);
+        .map(file => ({
+          type: 'image',
+          src: `https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/${month}/${file}`,
+          likes: parseInt(file.split('.').shift())
+        }))
+        .sort((a, b) => b.likes - a.likes);
+      console.log(`Found ${mediaData[month].images.length} images for ${month}`);
     } catch (error) {
-      imageData[month] = [];
       console.log(`No images found for ${month}`);
+    }
+
+    // Scan videos
+    const videoDirPath = path.join(__dirname, '../videos', month);
+    try {
+      const videoFiles = await fs.readdir(videoDirPath);
+      mediaData[month].videos = videoFiles
+        .filter(file => file.endsWith('.mp4'))
+        .map(file => ({
+          type: 'video',
+          src: `https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/${month}/${file}`,
+          likes: parseInt(file.split('.').shift())
+        }))
+        .sort((a, b) => b.likes - a.likes);
+      console.log(`Found ${mediaData[month].videos.length} videos for ${month}`);
+    } catch (error) {
+      console.log(`No videos found for ${month}`);
     }
   }
 
-  // Generate HTML with dynamic scaling and likes overlay
+  // Generate HTML with masonry layout
   const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>BWP @ https://x.com/rendo/lists</title>
+  <title>BWP</title>
   <style>
     body {
       background-color: #1a1a1a;
@@ -41,14 +60,10 @@ async function generatePages() {
       padding: 20px;
       text-align: center;
       font-family: Arial, sans-serif;
-    }
-    h1 a {
-      color: #ffffff;
-      text-decoration: none;
-    }
-    h1 a:hover {
-      text-decoration: underline;
-      color: #cccccc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
     }
     .month-buttons {
       margin-bottom: 20px;
@@ -56,76 +71,100 @@ async function generatePages() {
     .month-buttons button {
       background-color: #333333;
       color: #ffffff;
-      border: 1px solid #ffffff;
+      border: none;
       padding: 8px 16px;
       margin: 5px;
       cursor: pointer;
       font-size: 14px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
     }
     .month-buttons button:hover {
       background-color: #555555;
     }
     .collage-container {
-      max-width: 1200px; /* Fixed width for the display rectangle */
-      margin: 0 auto; /* Center the container */
-      border: 5px solid #ffffff; /* White border on all sides */
-      padding: 2px; /* Reduced padding to minimize blank space */
+      max-width: 1200px;
+      margin: 0 auto;
+      border: 5px solid #333333;
+      padding: 10px;
       box-sizing: border-box;
-      /* Placeholder gradient background; replace with a blurred image */
       background: linear-gradient(135deg, rgba(50, 50, 50, 0.8), rgba(20, 20, 20, 0.8));
       position: relative;
       overflow: hidden;
+      flex: 1;
     }
     .collage {
-      display: block; /* Use block to stack rows */
+      column-count: 4;
+      column-gap: 10px;
       width: 100%;
       position: relative;
-      z-index: 1; /* Ensure images are above the background */
+      z-index: 1;
     }
-    .row {
-      display: flex; /* Each row is a flex container */
-      flex-wrap: nowrap; /* Prevent wrapping within a row */
-      gap: 2px; /* Reduced gap between images */
-      justify-content: center; /* Center images horizontally in the row */
-      align-items: center; /* Center images vertically in the row */
-      margin-bottom: 2px; /* Reduced gap between rows */
-      position: relative;
+    @media (max-width: 900px) {
+      .collage {
+        column-count: 3;
+      }
+    }
+    @media (max-width: 600px) {
+      .collage {
+        column-count: 2;
+      }
     }
     .image-container {
       position: relative;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden; /* Ensure the glow effect doesn't overflow */
+      margin-bottom: 10px;
+      break-inside: avoid;
+      display: inline-block;
+      width: 100%;
     }
     .tilt-wrapper {
-      position: relative; /* Ensure the overlay positions correctly */
-      display: block; /* Ensure the wrapper fills its container */
+      position: relative;
+      display: block;
       width: 100%;
-      cursor: pointer; /* Ensure the wrapper is clickable */
+      cursor: pointer;
     }
-    .collage img {
+    .collage img,
+    .collage video {
       width: 100%;
-      height: auto; /* Preserve aspect ratio, no cropping */
-      object-fit: contain; /* Show the entire image without cropping */
-      object-position: center; /* Center the image within the container */
-      border: none; /* No white borders */
+      height: auto;
+      object-fit: contain;
+      object-position: center;
+      border: none;
       border-radius: 5px;
-      display: block; /* Remove any inline-block spacing */
+      display: block;
     }
-    /* Scaled widths to reduce blank space */
-    .row1 .image-container {
-      width: 298px; /* (1200px - 2px padding * 2 - 3 * 2px gap) / 4 = 298px */
-    }
-    .row2-3 .image-container {
-      width: 198px; /* (1200px - 2px padding * 2 - 5 * 2px gap) / 6 = 198px */
+    .collage video {
+      pointer-events: none; /* Prevent default video controls on hover */
     }
     .month-section {
       display: none;
     }
     .month-section.active {
       display: block;
+    }
+    /* Play button for videos */
+    .play-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+    .play-button::before {
+      content: '▶';
+      color: #000;
+      font-size: 14px;
+      margin-left: 2px; /* Slight offset to center the triangle */
+    }
+    .tilt-wrapper:hover .play-button {
+      opacity: 0; /* Hide play button on hover when video plays */
     }
     /* Likes overlay */
     .likes-overlay {
@@ -148,6 +187,35 @@ async function generatePages() {
     .likes-overlay::before {
       content: '❤️';
       margin-right: 5px;
+    }
+    /* Footer styles */
+    footer {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #333333;
+      width: calc(100% - 40px);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .footer-content {
+      display: flex;
+      align-items: center;
+    }
+    .footer-content img {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+    footer a {
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    footer a:hover {
+      text-decoration: underline;
+      color: #cccccc;
     }
     /* Full-screen modal styles */
     .modal {
@@ -178,77 +246,74 @@ async function generatePages() {
         align-items: center;
     }
     .modal .tilt-wrapper {
-        position: relative; /* Ensure the overlay positions correctly */
-        display: inline-block; /* Ensure the wrapper hugs its content */
+        position: relative;
+        display: inline-block;
     }
-    .modal img {
+    .modal img,
+    .modal video {
         max-width: 90vw;
         max-height: 90vh;
         width: auto;
         height: auto;
         object-fit: contain;
-        border: none; /* No white borders in modal */
+        border: none;
         border-radius: 5px;
-        display: block; /* Remove any inline-block spacing */
+        display: block;
     }
   </style>
 </head>
 <body>
-  <h1>BWP @ <a href="https://x.com/rendo/lists" target="_blank" rel="noopener noreferrer">https://x.com/rendo/lists</a></h1>
   <div class="month-buttons">
     ${months.map(month => `<button onclick="showMonth('${month}')">${month === 'Jan' ? 'January' : month === 'Feb' ? 'February' : month === 'Mar' ? 'March' : month === 'Apr' ? 'April' : month === 'May' ? 'May' : month === 'Jun' ? 'June' : month === 'Jul' ? 'July' : month === 'Aug' ? 'August' : month === 'Sep' ? 'September' : month === 'Oct' ? 'October' : month === 'Nov' ? 'November' : 'December'}</button>`).join('')}
   </div>
   ${months.map(month => {
-    // Define row structure
-    const images = imageData[month];
-    let imageIndex = 0;
-    const rowCounts = [4]; // First row: 4 images
-    let htmlOutput = '';
-
-    // Process images row by row
-    for (let row = 0; imageIndex < images.length; row++) {
-      const imagesInRow = row < rowCounts.length ? rowCounts[row] : 6; // 6 images per row after row 1
-      const rowImages = images.slice(imageIndex, imageIndex + imagesInRow);
-      imageIndex += imagesInRow;
-
-      // Determine row class based on row number
-      let rowClass = row === 0 ? 'row1' : 'row2-3';
-
-      // Generate HTML for this row
-      htmlOutput += `
-        <div class="row ${rowClass}">
-          ${rowImages.map(src => {
-            const likes = parseInt(src.split('/').pop().split('.').shift());
-            const blurredSrc = src.replace('.jpg', '-blurred.jpg'); // Placeholder for blurred image URL
-            return `
-              <div class="image-container" style="background: url('${blurredSrc}') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('${src}')">
-                  <img src="${src}" alt="Image with ${likes} likes">
-                  <div class="likes-overlay">${likes}</div>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-    }
-
+    const media = [...mediaData[month].images, ...mediaData[month].videos].sort((a, b) => b.likes - a.likes);
     return `
     <div id="${month}" class="month-section${month === 'Jan' ? ' active' : ''}">
       <div class="collage-container">
         <div class="collage">
-          ${htmlOutput}
+          ${media.map(item => {
+            const blurredSrc = item.src.replace('.jpg', '-blurred.jpg').replace('.mp4', '-blurred.jpg'); // Placeholder for blurred image URL
+            return `
+              <div class="image-container" style="background: url('${blurredSrc}') center center / cover no-repeat; background-size: 150%;">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('${item.src}', '${item.type}')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  ${item.type === 'image' ? `
+                    <img src="${item.src}" alt="Image with ${item.likes} likes">
+                  ` : `
+                    <video muted playsinline poster="${blurredSrc}">
+                      <source src="${item.src}" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                    <div class="play-button"></div>
+                  `}
+                  <div class="likes-overlay">${item.likes}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
         </div>
       </div>
     </div>
   `;
   }).join('')}
 
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/X_logo_2023_%28white%29.png" alt="X Logo">
+      <a href="https://x.com/rendo" target="_blank" rel="noopener noreferrer">@rendo</a>
+    </div>
+  </footer>
+
   <!-- Full-screen modal -->
   <div id="modal" class="modal" onclick="toggleFullScreen()">
     <div class="image-container">
       <div class="tilt-wrapper tilt-image" id="modal-wrapper">
-        <img id="modal-image" src="" alt="">
+        <img id="modal-image" src="" alt="" style="display: none;">
+        <video id="modal-video" muted playsinline controls style="display: none;">
+          <source id="modal-video-source" src="" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
         <div class="likes-overlay" id="modal-likes"></div>
       </div>
     </div>
@@ -263,37 +328,6 @@ async function generatePages() {
       });
       document.getElementById(month).classList.add('active');
       initTilt();
-      adjustRowHeights();
-    }
-
-    function adjustRowHeights() {
-      document.querySelectorAll('.month-section.active .row').forEach(row => {
-        let maxHeight = 0;
-        const containers = row.querySelectorAll('.image-container');
-        const images = row.querySelectorAll('img');
-
-        // Reset heights to measure natural height
-        containers.forEach(container => {
-          container.style.height = 'auto';
-        });
-        images.forEach(img => {
-          img.style.height = 'auto';
-        });
-
-        // Find the tallest image
-        images.forEach(img => {
-          const height = img.getBoundingClientRect().height;
-          if (height > maxHeight) {
-            maxHeight = height;
-          }
-        });
-
-        // Set the row and containers to the tallest height
-        row.style.height = maxHeight + 'px';
-        containers.forEach(container => {
-          container.style.height = maxHeight + 'px';
-        });
-      });
     }
 
     function initTilt() {
@@ -311,27 +345,57 @@ async function generatePages() {
       });
     }
 
-    let currentImage = null;
-    function toggleFullScreen(src) {
+    let currentMedia = null;
+    let currentMediaType = null;
+    function toggleFullScreen(src, type) {
       const modal = document.getElementById('modal');
       const modalImage = document.getElementById('modal-image');
+      const modalVideo = document.getElementById('modal-video');
+      const modalVideoSource = document.getElementById('modal-video-source');
       const modalLikes = document.getElementById('modal-likes');
 
       if (modal.classList.contains('active')) {
         modal.classList.remove('active');
-        currentImage = null;
-      } else if (src) {
-        modalImage.src = src;
+        modalImage.style.display = 'none';
+        modalVideo.style.display = 'none';
+        modalVideo.pause();
+        currentMedia = null;
+        currentMediaType = null;
+      } else if (src && type) {
+        if (type === 'image') {
+          modalImage.src = src;
+          modalImage.style.display = 'block';
+          modalVideo.style.display = 'none';
+        } else {
+          modalVideoSource.src = src;
+          modalVideo.load();
+          modalVideo.style.display = 'block';
+          modalImage.style.display = 'none';
+          modalVideo.play();
+        }
         const likes = src.split('/').pop().split('.').shift();
         modalLikes.textContent = likes;
         modal.classList.add('active');
-        currentImage = src;
+        currentMedia = src;
+        currentMediaType = type;
         initTilt();
       }
     }
 
-    // Run adjustRowHeights after images load
-    window.addEventListener('load', adjustRowHeights);
+    function playVideo(element) {
+      const video = element.querySelector('video');
+      if (video) {
+        video.play();
+      }
+    }
+
+    function pauseVideo(element) {
+      const video = element.querySelector('video');
+      if (video) {
+        video.pause();
+      }
+    }
+
     initTilt();
   </script>
 </body>

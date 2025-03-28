@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>BWP @ https://x.com/rendo/lists</title>
+  <title>BWP</title>
   <style>
     body {
       background-color: #1a1a1a;
@@ -12,14 +12,10 @@
       padding: 20px;
       text-align: center;
       font-family: Arial, sans-serif;
-    }
-    h1 a {
-      color: #ffffff;
-      text-decoration: none;
-    }
-    h1 a:hover {
-      text-decoration: underline;
-      color: #cccccc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
     }
     .month-buttons {
       margin-bottom: 20px;
@@ -27,76 +23,100 @@
     .month-buttons button {
       background-color: #333333;
       color: #ffffff;
-      border: 1px solid #ffffff;
+      border: none;
       padding: 8px 16px;
       margin: 5px;
       cursor: pointer;
       font-size: 14px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
     }
     .month-buttons button:hover {
       background-color: #555555;
     }
     .collage-container {
-      max-width: 1200px; /* Fixed width for the display rectangle */
-      margin: 0 auto; /* Center the container */
-      border: 5px solid #ffffff; /* White border on all sides */
-      padding: 2px; /* Reduced padding to minimize blank space */
+      max-width: 1200px;
+      margin: 0 auto;
+      border: 5px solid #333333;
+      padding: 10px;
       box-sizing: border-box;
-      /* Placeholder gradient background; replace with a blurred image */
       background: linear-gradient(135deg, rgba(50, 50, 50, 0.8), rgba(20, 20, 20, 0.8));
       position: relative;
       overflow: hidden;
+      flex: 1;
     }
     .collage {
-      display: block; /* Use block to stack rows */
+      column-count: 4;
+      column-gap: 10px;
       width: 100%;
       position: relative;
-      z-index: 1; /* Ensure images are above the background */
+      z-index: 1;
     }
-    .row {
-      display: flex; /* Each row is a flex container */
-      flex-wrap: nowrap; /* Prevent wrapping within a row */
-      gap: 2px; /* Reduced gap between images */
-      justify-content: center; /* Center images horizontally in the row */
-      align-items: center; /* Center images vertically in the row */
-      margin-bottom: 2px; /* Reduced gap between rows */
-      position: relative;
+    @media (max-width: 900px) {
+      .collage {
+        column-count: 3;
+      }
+    }
+    @media (max-width: 600px) {
+      .collage {
+        column-count: 2;
+      }
     }
     .image-container {
       position: relative;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden; /* Ensure the glow effect doesn't overflow */
+      margin-bottom: 10px;
+      break-inside: avoid;
+      display: inline-block;
+      width: 100%;
     }
     .tilt-wrapper {
-      position: relative; /* Ensure the overlay positions correctly */
-      display: block; /* Ensure the wrapper fills its container */
+      position: relative;
+      display: block;
       width: 100%;
-      cursor: pointer; /* Ensure the wrapper is clickable */
+      cursor: pointer;
     }
-    .collage img {
+    .collage img,
+    .collage video {
       width: 100%;
-      height: auto; /* Preserve aspect ratio, no cropping */
-      object-fit: contain; /* Show the entire image without cropping */
-      object-position: center; /* Center the image within the container */
-      border: none; /* No white borders */
+      height: auto;
+      object-fit: contain;
+      object-position: center;
+      border: none;
       border-radius: 5px;
-      display: block; /* Remove any inline-block spacing */
+      display: block;
     }
-    /* Scaled widths to reduce blank space */
-    .row1 .image-container {
-      width: 298px; /* (1200px - 2px padding * 2 - 3 * 2px gap) / 4 = 298px */
-    }
-    .row2-3 .image-container {
-      width: 198px; /* (1200px - 2px padding * 2 - 5 * 2px gap) / 6 = 198px */
+    .collage video {
+      pointer-events: none; /* Prevent default video controls on hover */
     }
     .month-section {
       display: none;
     }
     .month-section.active {
       display: block;
+    }
+    /* Play button for videos */
+    .play-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+    .play-button::before {
+      content: '▶';
+      color: #000;
+      font-size: 14px;
+      margin-left: 2px; /* Slight offset to center the triangle */
+    }
+    .tilt-wrapper:hover .play-button {
+      opacity: 0; /* Hide play button on hover when video plays */
     }
     /* Likes overlay */
     .likes-overlay {
@@ -119,6 +139,35 @@
     .likes-overlay::before {
       content: '❤️';
       margin-right: 5px;
+    }
+    /* Footer styles */
+    footer {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #333333;
+      width: calc(100% - 40px);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .footer-content {
+      display: flex;
+      align-items: center;
+    }
+    .footer-content img {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+    footer a {
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    footer a:hover {
+      text-decoration: underline;
+      color: #cccccc;
     }
     /* Full-screen modal styles */
     .modal {
@@ -149,23 +198,23 @@
         align-items: center;
     }
     .modal .tilt-wrapper {
-        position: relative; /* Ensure the overlay positions correctly */
-        display: inline-block; /* Ensure the wrapper hugs its content */
+        position: relative;
+        display: inline-block;
     }
-    .modal img {
+    .modal img,
+    .modal video {
         max-width: 90vw;
         max-height: 90vh;
         width: auto;
         height: auto;
         object-fit: contain;
-        border: none; /* No white borders in modal */
+        border: none;
         border-radius: 5px;
-        display: block; /* Remove any inline-block spacing */
+        display: block;
     }
   </style>
 </head>
 <body>
-  <h1>BWP @ <a href="https://x.com/rendo/lists" target="_blank" rel="noopener noreferrer">https://x.com/rendo/lists</a></h1>
   <div class="month-buttons">
     <button onclick="showMonth('Jan')">January</button><button onclick="showMonth('Feb')">February</button><button onclick="showMonth('Mar')">March</button><button onclick="showMonth('Apr')">April</button><button onclick="showMonth('May')">May</button><button onclick="showMonth('Jun')">June</button><button onclick="showMonth('Jul')">July</button><button onclick="showMonth('Aug')">August</button><button onclick="showMonth('Sep')">September</button><button onclick="showMonth('Oct')">October</button><button onclick="showMonth('Nov')">November</button><button onclick="showMonth('Dec')">December</button>
   </div>
@@ -174,438 +223,501 @@
       <div class="collage-container">
         <div class="collage">
           
-        <div class="row row1">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/18002-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/18002.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/18002.jpg" alt="Image with 18002 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/18002.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/18002.jpg" alt="Image with 18002 likes">
+                  
                   <div class="likes-overlay">18002</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/18000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/18000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/18000.jpg" alt="Image with 18000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/18000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/18000.jpg" alt="Image with 18000 likes">
+                  
                   <div class="likes-overlay">18000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/17000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/17000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/17000.jpg" alt="Image with 17000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/17000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/17000.jpg" alt="Image with 17000 likes">
+                  
                   <div class="likes-overlay">17000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/15000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/15000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/15000.jpg" alt="Image with 15000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/15000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/15000.jpg" alt="Image with 15000 likes">
+                  
                   <div class="likes-overlay">15000</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/14000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/14000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/14000.jpg" alt="Image with 14000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/14000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/14000.jpg" alt="Image with 14000 likes">
+                  
                   <div class="likes-overlay">14000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13001-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13001.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13001.jpg" alt="Image with 13001 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13001.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13001.jpg" alt="Image with 13001 likes">
+                  
                   <div class="likes-overlay">13001</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13000.jpg" alt="Image with 13000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13000.jpg" alt="Image with 13000 likes">
+                  
                   <div class="likes-overlay">13000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10003-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10003.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10003.jpg" alt="Image with 10003 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10003.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10003.jpg" alt="Image with 10003 likes">
+                  
                   <div class="likes-overlay">10003</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10002-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10002.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10002.jpg" alt="Image with 10002 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10002.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10002.jpg" alt="Image with 10002 likes">
+                  
                   <div class="likes-overlay">10002</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10001-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10001.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10001.jpg" alt="Image with 10001 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10001.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10001.jpg" alt="Image with 10001 likes">
+                  
                   <div class="likes-overlay">10001</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10000.jpg" alt="Image with 10000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/10000.jpg" alt="Image with 10000 likes">
+                  
                   <div class="likes-overlay">10000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/9900-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/9900.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/9900.jpg" alt="Image with 9900 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/9900.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/9900.jpg" alt="Image with 9900 likes">
+                  
                   <div class="likes-overlay">9900</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/9400-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/9400.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/9400.jpg" alt="Image with 9400 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/9400.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/9400.jpg" alt="Image with 9400 likes">
+                  
                   <div class="likes-overlay">9400</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8801-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8801.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8801.jpg" alt="Image with 8801 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8801.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8801.jpg" alt="Image with 8801 likes">
+                  
                   <div class="likes-overlay">8801</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8800-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8800.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8800.jpg" alt="Image with 8800 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8800.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8800.jpg" alt="Image with 8800 likes">
+                  
                   <div class="likes-overlay">8800</div>
                 </div>
               </div>
             
-              <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8200-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8200.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8200.jpg" alt="Image with 8200 likes">
-                  <div class="likes-overlay">8200</div>
-                </div>
-              </div>
-            
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8100-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8100.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8100.jpg" alt="Image with 8100 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8100.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/8100.jpg" alt="Image with 8100 likes">
+                  
                   <div class="likes-overlay">8100</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7600-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7600.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7600.jpg" alt="Image with 7600 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7600.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7600.jpg" alt="Image with 7600 likes">
+                  
                   <div class="likes-overlay">7600</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7400-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7400.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7400.jpg" alt="Image with 7400 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7400.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7400.jpg" alt="Image with 7400 likes">
+                  
                   <div class="likes-overlay">7400</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7300-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7300.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7300.jpg" alt="Image with 7300 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7300.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7300.jpg" alt="Image with 7300 likes">
+                  
                   <div class="likes-overlay">7300</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7200-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7200.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7200.jpg" alt="Image with 7200 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7200.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7200.jpg" alt="Image with 7200 likes">
+                  
                   <div class="likes-overlay">7200</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7000.jpg" alt="Image with 7000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/7000.jpg" alt="Image with 7000 likes">
+                  
                   <div class="likes-overlay">7000</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/6900-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/6900.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/6900.jpg" alt="Image with 6900 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/6900.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/6900.jpg" alt="Image with 6900 likes">
+                  
                   <div class="likes-overlay">6900</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/6200-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/6200.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/6200.jpg" alt="Image with 6200 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/6200.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/6200.jpg" alt="Image with 6200 likes">
+                  
                   <div class="likes-overlay">6200</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5900-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5900.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5900.jpg" alt="Image with 5900 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5900.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5900.jpg" alt="Image with 5900 likes">
+                  
                   <div class="likes-overlay">5900</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5500-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5500.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5500.jpg" alt="Image with 5500 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5500.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5500.jpg" alt="Image with 5500 likes">
+                  
                   <div class="likes-overlay">5500</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5202-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5202.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5202.jpg" alt="Image with 5202 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5202.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5202.jpg" alt="Image with 5202 likes">
+                  
                   <div class="likes-overlay">5202</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5201-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5201.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5201.jpg" alt="Image with 5201 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5201.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5201.jpg" alt="Image with 5201 likes">
+                  
                   <div class="likes-overlay">5201</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5200-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5200.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5200.jpg" alt="Image with 5200 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5200.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/5200.jpg" alt="Image with 5200 likes">
+                  
                   <div class="likes-overlay">5200</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4900-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4900.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4900.jpg" alt="Image with 4900 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4900.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4900.jpg" alt="Image with 4900 likes">
+                  
                   <div class="likes-overlay">4900</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4300-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4300.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4300.jpg" alt="Image with 4300 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4300.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4300.jpg" alt="Image with 4300 likes">
+                  
                   <div class="likes-overlay">4300</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4100-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4100.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4100.jpg" alt="Image with 4100 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4100.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4100.jpg" alt="Image with 4100 likes">
+                  
                   <div class="likes-overlay">4100</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4000.jpg" alt="Image with 4000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/4000.jpg" alt="Image with 4000 likes">
+                  
                   <div class="likes-overlay">4000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/3600-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/3600.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/3600.jpg" alt="Image with 3600 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/3600.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/3600.jpg" alt="Image with 3600 likes">
+                  
                   <div class="likes-overlay">3600</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/3100-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/3100.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/3100.jpg" alt="Image with 3100 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/3100.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/3100.jpg" alt="Image with 3100 likes">
+                  
                   <div class="likes-overlay">3100</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2900-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2900.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2900.jpg" alt="Image with 2900 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2900.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2900.jpg" alt="Image with 2900 likes">
+                  
                   <div class="likes-overlay">2900</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2801-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2801.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2801.jpg" alt="Image with 2801 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2801.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2801.jpg" alt="Image with 2801 likes">
+                  
                   <div class="likes-overlay">2801</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2800-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2800.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2800.jpg" alt="Image with 2800 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2800.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2800.jpg" alt="Image with 2800 likes">
+                  
                   <div class="likes-overlay">2800</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2501-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2501.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2501.jpg" alt="Image with 2501 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2501.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2501.jpg" alt="Image with 2501 likes">
+                  
                   <div class="likes-overlay">2501</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2500-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2500.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2500.jpg" alt="Image with 2500 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2500.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2500.jpg" alt="Image with 2500 likes">
+                  
                   <div class="likes-overlay">2500</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2400-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2400.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2400.jpg" alt="Image with 2400 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2400.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2400.jpg" alt="Image with 2400 likes">
+                  
                   <div class="likes-overlay">2400</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2200-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2200.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2200.jpg" alt="Image with 2200 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2200.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2200.jpg" alt="Image with 2200 likes">
+                  
                   <div class="likes-overlay">2200</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2100-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2100.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2100.jpg" alt="Image with 2100 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2100.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/2100.jpg" alt="Image with 2100 likes">
+                  
                   <div class="likes-overlay">2100</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1800-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1800.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1800.jpg" alt="Image with 1800 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1800.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1800.jpg" alt="Image with 1800 likes">
+                  
                   <div class="likes-overlay">1800</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1700-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1700.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1700.jpg" alt="Image with 1700 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1700.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1700.jpg" alt="Image with 1700 likes">
+                  
                   <div class="likes-overlay">1700</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1600-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1600.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1600.jpg" alt="Image with 1600 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1600.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1600.jpg" alt="Image with 1600 likes">
+                  
                   <div class="likes-overlay">1600</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1501-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1501.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1501.jpg" alt="Image with 1501 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1501.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1501.jpg" alt="Image with 1501 likes">
+                  
                   <div class="likes-overlay">1501</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1500-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1500.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1500.jpg" alt="Image with 1500 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1500.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1500.jpg" alt="Image with 1500 likes">
+                  
                   <div class="likes-overlay">1500</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1401-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1401.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1401.jpg" alt="Image with 1401 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1401.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1401.jpg" alt="Image with 1401 likes">
+                  
                   <div class="likes-overlay">1401</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1400-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1400.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1400.jpg" alt="Image with 1400 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1400.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1400.jpg" alt="Image with 1400 likes">
+                  
                   <div class="likes-overlay">1400</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1303-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1303.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1303.jpg" alt="Image with 1303 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1303.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1303.jpg" alt="Image with 1303 likes">
+                  
                   <div class="likes-overlay">1303</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1300-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1300.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1300.jpg" alt="Image with 1300 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1300.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1300.jpg" alt="Image with 1300 likes">
+                  
                   <div class="likes-overlay">1300</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1200-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1200.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1200.jpg" alt="Image with 1200 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1200.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1200.jpg" alt="Image with 1200 likes">
+                  
                   <div class="likes-overlay">1200</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1101-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1101.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1101.jpg" alt="Image with 1101 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1101.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1101.jpg" alt="Image with 1101 likes">
+                  
                   <div class="likes-overlay">1101</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1100-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1100.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1100.jpg" alt="Image with 1100 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1100.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1100.jpg" alt="Image with 1100 likes">
+                  
                   <div class="likes-overlay">1100</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1000.jpg" alt="Image with 1000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/1000.jpg" alt="Image with 1000 likes">
+                  
                   <div class="likes-overlay">1000</div>
                 </div>
               </div>
             
-        </div>
-      
         </div>
       </div>
     </div>
@@ -614,215 +726,262 @@
       <div class="collage-container">
         <div class="collage">
           
-        <div class="row row1">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/21000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/21000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/21000.jpg" alt="Image with 21000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/21000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/21000.jpg" alt="Image with 21000 likes">
+                  
                   <div class="likes-overlay">21000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/20000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/20000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/20000.jpg" alt="Image with 20000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/20000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/20000.jpg" alt="Image with 20000 likes">
+                  
                   <div class="likes-overlay">20000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/17000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/17000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/17000.jpg" alt="Image with 17000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/17000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/17000.jpg" alt="Image with 17000 likes">
+                  
                   <div class="likes-overlay">17000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/16000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/16000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/16000.jpg" alt="Image with 16000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/16000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/16000.jpg" alt="Image with 16000 likes">
+                  
                   <div class="likes-overlay">16000</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/15000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/15000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/15000.jpg" alt="Image with 15000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/15000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/15000.jpg" alt="Image with 15000 likes">
+                  
                   <div class="likes-overlay">15000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/13000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/13000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/13000.jpg" alt="Image with 13000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/13000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/13000.jpg" alt="Image with 13000 likes">
+                  
                   <div class="likes-overlay">13000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/11000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/11000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/11000.jpg" alt="Image with 11000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/11000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/11000.jpg" alt="Image with 11000 likes">
+                  
                   <div class="likes-overlay">11000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10002-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10002.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10002.jpg" alt="Image with 10002 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10002.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10002.jpg" alt="Image with 10002 likes">
+                  
                   <div class="likes-overlay">10002</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10001-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10001.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10001.jpg" alt="Image with 10001 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10001.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10001.jpg" alt="Image with 10001 likes">
+                  
                   <div class="likes-overlay">10001</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10000.jpg" alt="Image with 10000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/10000.jpg" alt="Image with 10000 likes">
+                  
                   <div class="likes-overlay">10000</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/9700-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/9700.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/9700.jpg" alt="Image with 9700 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/9700.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/9700.jpg" alt="Image with 9700 likes">
+                  
                   <div class="likes-overlay">9700</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/9400-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/9400.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/9400.jpg" alt="Image with 9400 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/9400.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/9400.jpg" alt="Image with 9400 likes">
+                  
                   <div class="likes-overlay">9400</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/8300-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/8300.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/8300.jpg" alt="Image with 8300 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/8300.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/8300.jpg" alt="Image with 8300 likes">
+                  
                   <div class="likes-overlay">8300</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6800-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6800.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6800.jpg" alt="Image with 6800 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6800.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6800.jpg" alt="Image with 6800 likes">
+                  
                   <div class="likes-overlay">6800</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6501-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6501.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6501.jpg" alt="Image with 6501 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6501.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6501.jpg" alt="Image with 6501 likes">
+                  
                   <div class="likes-overlay">6501</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6500-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6500.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6500.jpg" alt="Image with 6500 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6500.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6500.jpg" alt="Image with 6500 likes">
+                  
                   <div class="likes-overlay">6500</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6300-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6300.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6300.jpg" alt="Image with 6300 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6300.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/6300.jpg" alt="Image with 6300 likes">
+                  
                   <div class="likes-overlay">6300</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5801-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5801.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5801.jpg" alt="Image with 5801 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5801.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5801.jpg" alt="Image with 5801 likes">
+                  
                   <div class="likes-overlay">5801</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5800-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5800.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5800.jpg" alt="Image with 5800 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5800.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5800.jpg" alt="Image with 5800 likes">
+                  
                   <div class="likes-overlay">5800</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5301-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5301.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5301.jpg" alt="Image with 5301 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5301.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5301.jpg" alt="Image with 5301 likes">
+                  
                   <div class="likes-overlay">5301</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5300-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5300.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5300.jpg" alt="Image with 5300 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5300.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5300.jpg" alt="Image with 5300 likes">
+                  
                   <div class="likes-overlay">5300</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5004-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5004.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5004.jpg" alt="Image with 5004 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5004.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5004.jpg" alt="Image with 5004 likes">
+                  
                   <div class="likes-overlay">5004</div>
                 </div>
               </div>
             
-        </div>
-      
-        <div class="row row2-3">
-          
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5002-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5002.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5002.jpg" alt="Image with 5002 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5002.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5002.jpg" alt="Image with 5002 likes">
+                  
                   <div class="likes-overlay">5002</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5001-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5001.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5001.jpg" alt="Image with 5001 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5001.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5001.jpg" alt="Image with 5001 likes">
+                  
                   <div class="likes-overlay">5001</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5000.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5000.jpg" alt="Image with 5000 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5000.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/5000.jpg" alt="Image with 5000 likes">
+                  
                   <div class="likes-overlay">5000</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/4600-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/4600.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/4600.jpg" alt="Image with 4600 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/4600.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/4600.jpg" alt="Image with 4600 likes">
+                  
                   <div class="likes-overlay">4600</div>
                 </div>
               </div>
             
               <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/4400-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
-                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/4400.jpg')">
-                  <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/4400.jpg" alt="Image with 4400 likes">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/4400.jpg', 'image')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <img src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Feb/4400.jpg" alt="Image with 4400 likes">
+                  
                   <div class="likes-overlay">4400</div>
                 </div>
               </div>
             
-        </div>
-      
+              <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/Feb/3000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
+                <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/Feb/3000.mp4', 'video')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
+                  
+                    <video muted playsinline poster="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/Feb/3000-blurred.jpg">
+                      <source src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/Feb/3000.mp4" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                    <div class="play-button"></div>
+                  
+                  <div class="likes-overlay">3000</div>
+                </div>
+              </div>
+            
         </div>
       </div>
     </div>
@@ -908,11 +1067,23 @@
     </div>
   
 
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/X_logo_2023_%28white%29.png" alt="X Logo">
+      <a href="https://x.com/rendo" target="_blank" rel="noopener noreferrer">@rendo</a>
+    </div>
+  </footer>
+
   <!-- Full-screen modal -->
   <div id="modal" class="modal" onclick="toggleFullScreen()">
     <div class="image-container">
       <div class="tilt-wrapper tilt-image" id="modal-wrapper">
-        <img id="modal-image" src="" alt="">
+        <img id="modal-image" src="" alt="" style="display: none;">
+        <video id="modal-video" muted playsinline controls style="display: none;">
+          <source id="modal-video-source" src="" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
         <div class="likes-overlay" id="modal-likes"></div>
       </div>
     </div>
@@ -927,37 +1098,6 @@
       });
       document.getElementById(month).classList.add('active');
       initTilt();
-      adjustRowHeights();
-    }
-
-    function adjustRowHeights() {
-      document.querySelectorAll('.month-section.active .row').forEach(row => {
-        let maxHeight = 0;
-        const containers = row.querySelectorAll('.image-container');
-        const images = row.querySelectorAll('img');
-
-        // Reset heights to measure natural height
-        containers.forEach(container => {
-          container.style.height = 'auto';
-        });
-        images.forEach(img => {
-          img.style.height = 'auto';
-        });
-
-        // Find the tallest image
-        images.forEach(img => {
-          const height = img.getBoundingClientRect().height;
-          if (height > maxHeight) {
-            maxHeight = height;
-          }
-        });
-
-        // Set the row and containers to the tallest height
-        row.style.height = maxHeight + 'px';
-        containers.forEach(container => {
-          container.style.height = maxHeight + 'px';
-        });
-      });
     }
 
     function initTilt() {
@@ -975,27 +1115,57 @@
       });
     }
 
-    let currentImage = null;
-    function toggleFullScreen(src) {
+    let currentMedia = null;
+    let currentMediaType = null;
+    function toggleFullScreen(src, type) {
       const modal = document.getElementById('modal');
       const modalImage = document.getElementById('modal-image');
+      const modalVideo = document.getElementById('modal-video');
+      const modalVideoSource = document.getElementById('modal-video-source');
       const modalLikes = document.getElementById('modal-likes');
 
       if (modal.classList.contains('active')) {
         modal.classList.remove('active');
-        currentImage = null;
-      } else if (src) {
-        modalImage.src = src;
+        modalImage.style.display = 'none';
+        modalVideo.style.display = 'none';
+        modalVideo.pause();
+        currentMedia = null;
+        currentMediaType = null;
+      } else if (src && type) {
+        if (type === 'image') {
+          modalImage.src = src;
+          modalImage.style.display = 'block';
+          modalVideo.style.display = 'none';
+        } else {
+          modalVideoSource.src = src;
+          modalVideo.load();
+          modalVideo.style.display = 'block';
+          modalImage.style.display = 'none';
+          modalVideo.play();
+        }
         const likes = src.split('/').pop().split('.').shift();
         modalLikes.textContent = likes;
         modal.classList.add('active');
-        currentImage = src;
+        currentMedia = src;
+        currentMediaType = type;
         initTilt();
       }
     }
 
-    // Run adjustRowHeights after images load
-    window.addEventListener('load', adjustRowHeights);
+    function playVideo(element) {
+      const video = element.querySelector('video');
+      if (video) {
+        video.play();
+      }
+    }
+
+    function pauseVideo(element) {
+      const video = element.querySelector('video');
+      if (video) {
+        video.pause();
+      }
+    }
+
     initTilt();
   </script>
 </body>
