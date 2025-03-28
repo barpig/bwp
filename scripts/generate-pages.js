@@ -93,6 +93,26 @@ async function generatePages() {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="g.rendo.club - A curated gallery of beautiful women, handpicked from a list on X. Explore stunning images and videos organized by month.">
+  <meta name="keywords" content="beautiful women, curated gallery, photography, videos, X list, g.rendo.club">
+  <meta name="author" content="rendo">
+  <meta name="robots" content="index, follow">
+  <!-- Open Graph Tags for Social Media -->
+  <meta property="og:title" content="g.rendo.club - Curated Gallery of Beautiful Women">
+  <meta property="og:description" content="Explore a stunning gallery of beautiful women curated from a list on X. Images and videos organized by month.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13000.jpg"> <!-- Replace with a representative image -->
+  <meta property="og:url" content="https://g.rendo.club"> <!-- Replace with your actual domain -->
+  <meta property="og:type" content="website">
+  <!-- Twitter Card Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:creator" content="@rendo">
+  <meta name="twitter:title" content="g.rendo.club - Curated Gallery of Beautiful Women">
+  <meta name="twitter:description" content="Explore a stunning gallery of beautiful women curated from a list on X. Images and videos organized by month.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/images/Jan/13000.jpg"> <!-- Replace with a representative image -->
+  <!-- Favicon and Icons -->
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/favicon.ico"> <!-- Add a favicon.ico to your repo -->
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/apple-touch-icon.png"> <!-- Add an apple-touch-icon.png to your repo -->
   <title>g.rendo.club</title>
   <style>
     body {
@@ -174,6 +194,7 @@ async function generatePages() {
       border: none;
       border-radius: 5px;
       display: block;
+      loading: lazy; /* Lazy load images and videos */
     }
     .collage video {
       pointer-events: none;
@@ -240,6 +261,7 @@ async function generatePages() {
       justify-content: flex-end;
       align-items: center;
       box-sizing: border-box;
+      position: relative;
     }
     .footer-content {
       display: flex;
@@ -258,6 +280,16 @@ async function generatePages() {
     footer a:hover {
       text-decoration: underline;
       color: #cccccc;
+    }
+    .view-count {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      display: none;
+    }
+    .view-count.visible {
+      display: block;
     }
     /* Full-screen modal styles */
     .modal {
@@ -321,9 +353,9 @@ async function generatePages() {
               <div class="image-container" style="background: url('${blurredSrc}') center center / cover no-repeat; background-size: 150%;">
                 <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('${item.src}', '${item.type}')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
                   ${item.type === 'image' ? `
-                    <img src="${item.src}" alt="Image with ${item.likes} likes">
+                    <img src="${item.src}" alt="Beautiful woman image with ${item.likes} likes" loading="lazy">
                   ` : `
-                    <video muted playsinline loop poster="${thumbnailSrc}">
+                    <video muted playsinline loop poster="${thumbnailSrc}" loading="lazy">
                       <source src="${item.src}" type="video/mp4">
                       Your browser does not support the video tag.
                     </video>
@@ -346,6 +378,7 @@ async function generatePages() {
       <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/X_logo_2023_%28white%29.png" alt="X Logo">
       <a href="https://x.com/rendo" target="_blank" rel="noopener noreferrer">@rendo</a>
     </div>
+    <span id="view-count" class="view-count">Views: <span id="view-count-value">0</span></span>
   </footer>
 
   <!-- Full-screen modal -->
@@ -361,6 +394,39 @@ async function generatePages() {
       </div>
     </div>
   </div>
+
+  <!-- Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "g.rendo.club",
+    "url": "https://g.rendo.club", // Replace with your actual domain
+    "description": "A curated gallery of beautiful women, handpicked from a list on X. Explore stunning images and videos organized by month.",
+    "publisher": {
+      "@type": "Person",
+      "name": "rendo",
+      "sameAs": "https://x.com/rendo"
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://g.rendo.club/?month={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    "name": "g.rendo.club Gallery",
+    "url": "https://g.rendo.club", // Replace with your actual domain
+    "description": "A curated gallery of beautiful women, handpicked from a list on X.",
+    "image": [
+      ${[...mediaData['Jan'].images, ...mediaData['Jan'].videos].slice(0, 3).map(item => `"${item.src}"`).join(',')}
+    ]
+  }
+  </script>
 
   <!-- Include vanilla-tilt via CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
@@ -452,6 +518,26 @@ async function generatePages() {
         video.pause();
       }
     }
+
+    // View Count Logic
+    (function() {
+      // Increment view count in localStorage
+      let viewCount = localStorage.getItem('viewCount') || 0;
+      viewCount = parseInt(viewCount) + 1;
+      localStorage.setItem('viewCount', viewCount);
+
+      // Update view count display
+      const viewCountElement = document.getElementById('view-count-value');
+      viewCountElement.textContent = viewCount;
+
+      // Toggle view count visibility on Ctrl+Alt+V
+      document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.altKey && event.key.toLowerCase() === 'v') {
+          const viewCountContainer = document.getElementById('view-count');
+          viewCountContainer.classList.toggle('visible');
+        }
+      });
+    })();
 
     initTilt();
   </script>
