@@ -86,7 +86,7 @@
       display: block;
     }
     .collage video {
-      pointer-events: none; /* Prevent default video controls on hover */
+      pointer-events: none;
     }
     .month-section {
       display: none;
@@ -113,10 +113,10 @@
       content: '▶';
       color: #000;
       font-size: 14px;
-      margin-left: 2px; /* Slight offset to center the triangle */
+      margin-left: 2px;
     }
     .tilt-wrapper:hover .play-button {
-      opacity: 0; /* Hide play button on hover when video plays */
+      opacity: 0;
     }
     /* Likes overlay */
     .likes-overlay {
@@ -969,10 +969,10 @@
                 </div>
               </div>
             
-              <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/Feb/3000-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
+              <div class="image-container" style="background: url('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/Feb/3000-blurred-blurred.jpg') center center / cover no-repeat; background-size: 150%;">
                 <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/Feb/3000.mp4', 'video')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
                   
-                    <video muted playsinline poster="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/Feb/3000-blurred.jpg">
+                    <video muted playsinline poster="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/Feb/3000-thumbnail-thumbnail.jpg">
                       <source src="https://raw.githubusercontent.com/barpig/bwp/refs/heads/main/videos/Feb/3000.mp4" type="video/mp4">
                       Your browser does not support the video tag.
                     </video>
@@ -1155,7 +1155,12 @@
     function playVideo(element) {
       const video = element.querySelector('video');
       if (video) {
-        video.play();
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error('Video playback failed:', error);
+          });
+        }
       }
     }
 

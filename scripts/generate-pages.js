@@ -134,7 +134,7 @@ async function generatePages() {
       display: block;
     }
     .collage video {
-      pointer-events: none; /* Prevent default video controls on hover */
+      pointer-events: none;
     }
     .month-section {
       display: none;
@@ -161,10 +161,10 @@ async function generatePages() {
       content: '▶';
       color: #000;
       font-size: 14px;
-      margin-left: 2px; /* Slight offset to center the triangle */
+      margin-left: 2px;
     }
     .tilt-wrapper:hover .play-button {
-      opacity: 0; /* Hide play button on hover when video plays */
+      opacity: 0;
     }
     /* Likes overlay */
     .likes-overlay {
@@ -273,14 +273,15 @@ async function generatePages() {
       <div class="collage-container">
         <div class="collage">
           ${media.map(item => {
-            const blurredSrc = item.src.replace('.jpg', '-blurred.jpg').replace('.mp4', '-blurred.jpg'); // Placeholder for blurred image URL
+            const thumbnailSrc = item.src.replace('.mp4', '-thumbnail.jpg').replace('.jpg', '-thumbnail.jpg'); // Use thumbnail for poster
+            const blurredSrc = item.src.replace('.mp4', '-blurred.jpg').replace('.jpg', '-blurred.jpg'); // Use blurred for ambient effect
             return `
               <div class="image-container" style="background: url('${blurredSrc}') center center / cover no-repeat; background-size: 150%;">
                 <div class="tilt-wrapper tilt-image" onclick="toggleFullScreen('${item.src}', '${item.type}')" onmouseover="playVideo(this)" onmouseout="pauseVideo(this)">
                   ${item.type === 'image' ? `
                     <img src="${item.src}" alt="Image with ${item.likes} likes">
                   ` : `
-                    <video muted playsinline poster="${blurredSrc}">
+                    <video muted playsinline poster="${thumbnailSrc}">
                       <source src="${item.src}" type="video/mp4">
                       Your browser does not support the video tag.
                     </video>
@@ -385,7 +386,12 @@ async function generatePages() {
     function playVideo(element) {
       const video = element.querySelector('video');
       if (video) {
-        video.play();
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error('Video playback failed:', error);
+          });
+        }
       }
     }
 
