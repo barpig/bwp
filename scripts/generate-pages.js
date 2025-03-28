@@ -11,28 +11,27 @@ async function generatePages() {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const mediaData = {};
 
-  // Generate thumbnails for videos
+  // Generate thumbnails for videos and store them in the videos folder
   for (const month of months) {
     const videoDirPath = path.join(__dirname, '../videos', month);
-    const imageDirPath = path.join(__dirname, '../images', month);
     try {
-      // Ensure the images directory exists
-      await fs.mkdir(imageDirPath, { recursive: true });
+      // Ensure the videos directory exists
+      await fs.mkdir(videoDirPath, { recursive: true });
       const videoFiles = await fs.readdir(videoDirPath);
       for (const file of videoFiles.filter(f => f.endsWith('.mp4'))) {
         const videoPath = path.join(videoDirPath, file);
-        const thumbnailPath = path.join(imageDirPath, file.replace('.mp4', '-thumbnail.jpg'));
+        const thumbnailPath = path.join(videoDirPath, file.replace('.mp4', '-thumbnail.jpg'));
         try {
           await new Promise((resolve, reject) => {
             ffmpeg(videoPath)
               .screenshots({
                 count: 1,
-                folder: imageDirPath,
+                folder: videoDirPath,
                 filename: file.replace('.mp4', '-thumbnail.jpg'),
                 timemarks: ['0'] // Extract the first frame
               })
               .on('end', () => {
-                console.log(`Generated thumbnail for ${file}`);
+                console.log(`Generated thumbnail for ${file} at ${thumbnailPath}`);
                 resolve();
               })
               .on('error', (err) => {
@@ -316,7 +315,7 @@ async function generatePages() {
       <div class="collage-container">
         <div class="collage">
           ${media.map(item => {
-            const thumbnailSrc = item.src.replace('.mp4', '-thumbnail.jpg').replace('.jpg', '-thumbnail.jpg');
+            const thumbnailSrc = item.type === 'video' ? item.src.replace('.mp4', '-thumbnail.jpg') : item.src.replace('.jpg', '-thumbnail.jpg');
             const blurredSrc = item.src.replace('.mp4', '-blurred.jpg').replace('.jpg', '-blurred.jpg');
             return `
               <div class="image-container" style="background: url('${blurredSrc}') center center / cover no-repeat; background-size: 150%;">
@@ -354,7 +353,7 @@ async function generatePages() {
     <div class="image-container">
       <div class="tilt-wrapper tilt-image" id="modal-wrapper">
         <img id="modal-image" src="" alt="" style="display: none;">
-        <video id="modal-video" muted playsinline controls style="display: none;">
+        <video id="modal-video" muted playsinline controls loop style="display: none;">
           <source id="modal-video-source" src="" type="video/mp4">
           Your browser does not support the video tag.
         </video>
