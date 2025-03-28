@@ -93,7 +93,7 @@ async function generatePages() {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>BWP</title>
+  <title>g.rendo.club</title>
   <style>
     body {
       background-color: #1a1a1a;
@@ -415,8 +415,8 @@ async function generatePages() {
           modalVideo.load();
           modalVideo.style.display = 'block';
           modalImage.style.display = 'none';
-          // Reset muted state to true before loading new video
-          modalVideo.muted = true;
+          // Unmute the video by default to ensure sound plays if present
+          modalVideo.muted = false;
           // Start playing the video immediately
           const playPromise = modalVideo.play();
           if (playPromise !== undefined) {
@@ -424,12 +424,6 @@ async function generatePages() {
               console.error('Video playback failed in modal:', error);
             });
           }
-          // Check if the video has audio and unmute if it does
-          modalVideo.onloadedmetadata = () => {
-            if (modalVideo.audioTracks && modalVideo.audioTracks.length > 0) {
-              modalVideo.muted = false;
-            }
-          };
         }
         const likes = src.split('/').pop().split('.').shift();
         modalLikes.textContent = likes;
