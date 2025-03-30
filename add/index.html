@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Post Scraper</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #2d2d2d;
+            padding: 30px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaaaaa;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #3d3d3d;
+            border: none;
+            border-radius: 4px;
+            color: #ffffff;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #5a5a5a;
+        }
+
+        #status {
+            margin-top: 20px;
+            text-align: center;
+            color: #aaaaaa;
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        #result img {
+            max-width: 100%;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>X Post Scraper</h1>
+        <form id="scrapeForm">
+            <div class="form-group">
+                <label for="postUrl">Post URL</label>
+                <input type="text" id="postUrl" name="postUrl" placeholder="https://twitter.com/username/status/123456789" required>
+            </div>
+            <button type="submit">Scrape Post</button>
+        </form>
+        <div id="status"></div>
+        <div id="result">
+            <p>Saved as: <span id="filename"></span></p>
+            <img id="preview" src="" alt="Scraped Image">
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('scrapeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('postUrl').value;
+            const status = document.getElementById('status');
+            const result = document.getElementById('result');
+            const filenameEl = document.getElementById('filename');
+            const preview = document.getElementById('preview');
+
+            status.textContent = 'Scraping...';
+            result.style.display = 'none';
+
+            try {
+                const response = await fetch('/scrape', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    status.textContent = 'Scraping completed!';
+                    filenameEl.textContent = data.filename;
+                    preview.src = data.filepath;
+                    result.style.display = 'block';
+                } else {
+                    status.textContent = `Error: ${data.error}`;
+                }
+            } catch (error) {
+                status.textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
