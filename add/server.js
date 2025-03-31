@@ -10,12 +10,16 @@ app.use(express.static(__dirname));
 // Serve the images folder from the bwp directory
 app.use('/images', express.static('C:\\Users\\rendo\\Documents\\GitHub\\bwp\\images'));
 
-// Helper function to convert likes (e.g., "56K") to number (for logging only)
+// Helper function to convert likes (e.g., "56K") to number
 function parseLikes(likesStr) {
+    console.log('Raw likes string:', likesStr); // Debug log
     if (!likesStr) return 0;
     likesStr = likesStr.toLowerCase().trim();
     if (likesStr.includes('k')) {
         return Math.round(parseFloat(likesStr.replace('k', '')) * 1000);
+    }
+    if (likesStr.includes('m')) {
+        return Math.round(parseFloat(likesStr.replace('m', '')) * 1000000);
     }
     return parseInt(likesStr);
 }
@@ -26,27 +30,6 @@ function getMonthFolder(dateStr) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return months[date.getMonth()];
-}
-
-// Function to get the next available number for the filename
-function getNextFileNumber(dir) {
-    if (!fs.existsSync(dir)) {
-        return 2101; // Start at 2101 if the directory doesn't exist
-    }
-
-    const files = fs.readdirSync(dir);
-    const numbers = files
-        .map(file => {
-            const match = file.match(/^(\d+)\.(jpg|jpeg|png|gif)$/i);
-            return match ? parseInt(match[1]) : null;
-        })
-        .filter(num => num !== null);
-
-    if (numbers.length === 0) {
-        return 2101; // Start at 2101 if no numbered files exist
-    }
-
-    return Math.max(...numbers) + 1; // Increment the highest number
 }
 
 // Custom delay function
@@ -68,7 +51,7 @@ app.post('/scrape', async (req, res) => {
 
         // Load cookies from the private folder
         console.log('Loading cookies...');
-        const cookiesPath = path.join(__dirname, '..', 'private', 'cookies.json'); // Navigate up to bwp, then into private
+        const cookiesPath = path.join(__dirname, '..', 'private', 'cookies.json');
         if (!fs.existsSync(cookiesPath)) {
             throw new Error('cookies.json not found in the private folder. Please create C:\\Users\\rendo\\Documents\\GitHub\\bwp\\private\\cookies.json with your X session cookies.');
         }
@@ -115,7 +98,17 @@ app.post('/scrape', async (req, res) => {
             }
 
             const timeElement = document.querySelector('time');
+
+            // Debug: Log all elements with data-testid="like"
+            const likeElements = Array.from(document.querySelectorAll('[data-testid="like"]'));
+            console.log('Like elements found:', likeElements.map(el => ({
+                text: el.parentElement?.textContent || 'No text',
+                outerHTML: el.parentElement?.outerHTML.substring(0, 100) || 'No parent'
+            })));
+
+            // Try to find the correct like element
             let likeElement = document.querySelector('[data-testid="like"]')?.parentElement || { textContent: '0' };
+            console.log('Selected like element text:', likeElement.textContent);
 
             return {
                 imgUrl: imgElement?.src || null,
@@ -153,10 +146,18 @@ app.post('/scrape', async (req, res) => {
             extension = postData.imgUrl.split('.').pop().split('?')[0];
         }
 
-        // Get the next available number for the filename
-        const nextNumber = getNextFileNumber(dir);
-        let filename = `${nextNumber}.${extension}`;
+        // Use the like count for the filename
+        const likes = parseLikes(postData.likes);
+        let filename = `${likes}.${extension}`;
         let filepath = path.join(dir, filename);
+        let counter = 0;
+
+        // Handle filename conflicts
+        while (fs.existsSync(filepath)) {
+            counter++;
+            filename = `${likes}_${counter}.${extension}`;
+            filepath = path.join(dir, filename);
+        }
 
         console.log('Downloading image to:', filepath);
         const response = await page.goto(postData.imgUrl, { waitUntil: 'networkidle0' });
