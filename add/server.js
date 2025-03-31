@@ -66,6 +66,17 @@ app.post('/scrape', async (req, res) => {
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
         await page.setViewport({ width: 1280, height: 800 });
 
+        // Load cookies
+        console.log('Loading cookies...');
+        const cookiesPath = path.join(__dirname, 'cookies.json');
+        if (!fs.existsSync(cookiesPath)) {
+            throw new Error('cookies.json not found. Please create cookies.json with your X session cookies.');
+        }
+        const cookies = JSON.parse(fs.readFileSync(cookiesPath));
+        await page.setCookie(...cookies);
+        console.log('Cookies loaded successfully');
+
+        // Navigate to the post URL
         console.log('Navigating to:', url);
         await page.goto(url, { waitUntil: 'networkidle2' });
 
