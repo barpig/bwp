@@ -66,11 +66,11 @@ app.post('/scrape', async (req, res) => {
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
         await page.setViewport({ width: 1280, height: 800 });
 
-        // Load cookies
+        // Load cookies from the private folder
         console.log('Loading cookies...');
-        const cookiesPath = path.join(__dirname, 'cookies.json');
+        const cookiesPath = path.join(__dirname, '..', 'private', 'cookies.json'); // Navigate up to bwp, then into private
         if (!fs.existsSync(cookiesPath)) {
-            throw new Error('cookies.json not found. Please create cookies.json with your X session cookies.');
+            throw new Error('cookies.json not found in the private folder. Please create C:\\Users\\rendo\\Documents\\GitHub\\bwp\\private\\cookies.json with your X session cookies.');
         }
         const cookies = JSON.parse(fs.readFileSync(cookiesPath));
         await page.setCookie(...cookies);
