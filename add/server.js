@@ -10,7 +10,7 @@ app.use(express.static(__dirname));
 // Serve the images folder from the bwp directory
 app.use('/images', express.static('C:\\Users\\rendo\\Documents\\GitHub\\bwp\\images'));
 
-// Helper function to convert likes (e.g., "56K") to number
+// Helper function to convert likes (e.g., "56K") to number (for logging only)
 function parseLikes(likesStr) {
     if (!likesStr) return 0;
     likesStr = likesStr.toLowerCase().trim();
@@ -26,6 +26,27 @@ function getMonthFolder(dateStr) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return months[date.getMonth()];
+}
+
+// Function to get the next available number for the filename
+function getNextFileNumber(dir) {
+    if (!fs.existsSync(dir)) {
+        return 2101; // Start at 2101 if the directory doesn't exist
+    }
+
+    const files = fs.readdirSync(dir);
+    const numbers = files
+        .map(file => {
+            const match = file.match(/^(\d+)\.(jpg|jpeg|png|gif)$/i);
+            return match ? parseInt(match[1]) : null;
+        })
+        .filter(num => num !== null);
+
+    if (numbers.length === 0) {
+        return 2101; // Start at 2101 if no numbered files exist
+    }
+
+    return Math.max(...numbers) + 1; // Increment the highest number
 }
 
 // Custom delay function
@@ -121,15 +142,10 @@ app.post('/scrape', async (req, res) => {
             extension = postData.imgUrl.split('.').pop().split('?')[0];
         }
 
-        let filename = `${parseLikes(postData.likes)}.${extension}`;
+        // Get the next available number for the filename
+        const nextNumber = getNextFileNumber(dir);
+        let filename = `${nextNumber}.${extension}`;
         let filepath = path.join(dir, filename);
-        let counter = 0;
-
-        while (fs.existsSync(filepath)) {
-            counter++;
-            filename = `${parseLikes(postData.likes)}_${counter}.${extension}`;
-            filepath = path.join(dir, filename);
-        }
 
         console.log('Downloading image to:', filepath);
         const response = await page.goto(postData.imgUrl, { waitUntil: 'networkidle0' });
@@ -141,7 +157,7 @@ app.post('/scrape', async (req, res) => {
         res.json({
             success: true,
             filename,
-            filepath: `/images/${monthFolder}/${filename}` // Relative path for frontend
+            filepath: `/images/${monthFolder}/${filename}`
         });
 
     } catch (error) {
