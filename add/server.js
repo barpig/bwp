@@ -106,14 +106,29 @@ app.post('/scrape', async (req, res) => {
                 outerHTML: el.parentElement?.outerHTML.substring(0, 100) || 'No parent'
             })));
 
-            // Try to find the correct like element
-            let likeElement = document.querySelector('[data-testid="like"]')?.parentElement || { textContent: '0' };
+            // Find the like element specific to the target post
+            let likeElement = null;
+            const article = document.querySelector(`article [data-testid="tweetPhoto"]`)?.closest('article');
+            if (article) {
+                likeElement = article.querySelector('[data-testid="like"]')?.parentElement || { textContent: '0' };
+            } else {
+                // Fallback: Use the first like element if article-specific search fails
+                likeElement = document.querySelector('[data-testid="like"]')?.parentElement || { textContent: '0' };
+            }
             console.log('Selected like element text:', likeElement.textContent);
+
+            // Extract the post text content
+            let postText = '';
+            const textElement = article?.querySelector('div[data-testid="tweetText"]');
+            if (textElement) {
+                postText = textElement.textContent || '';
+            }
 
             return {
                 imgUrl: imgElement?.src || null,
                 date: timeElement?.getAttribute('datetime') || new Date().toISOString(),
-                likes: likeElement.textContent || '0'
+                likes: likeElement.textContent || '0',
+                text: postText
             };
         });
 
@@ -159,17 +174,62 @@ app.post('/scrape', async (req, res) => {
             filepath = path.join(dir, filename);
         }
 
+        // Save the image
         console.log('Downloading image to:', filepath);
         const response = await page.goto(postData.imgUrl, { waitUntil: 'networkidle0' });
         const buffer = await response.buffer();
         fs.writeFileSync(filepath, buffer);
+
+        // Prepare the metadata
+        const metadata = {
+            filename: filename,
+            filepath: `/images/${monthFolder}/${filename}`,
+            date: postData.date,
+            likes: postData.likes,
+            text: postData.text
+        };
+        console.log('Prepared metadata:', metadata);
+
+        // Save the metadata to a single JSON file in the root directory
+        const metadataFilepath = path.join('C:\\Users\\rendo\\Documents\\GitHub\\bwp', 'posts.json');
+        let allMetadata = {};
+
+        // Read the existing metadata file, if it exists
+        console.log('Checking if posts.json exists at:', metadataFilepath);
+        if (fs.existsSync(metadataFilepath)) {
+            try {
+                const fileContent = fs.readFileSync(metadataFilepath, 'utf8');
+                console.log('Existing posts.json content:', fileContent);
+                allMetadata = JSON.parse(fileContent);
+            } catch (error) {
+                console.error('Error reading posts.json:', error.message);
+                allMetadata = {};
+            }
+        } else {
+            console.log('posts.json does not exist, creating a new one');
+        }
+
+        // Add the new metadata using the full post URL as the key
+        console.log('Adding metadata for URL:', url);
+        allMetadata[url] = metadata;
+        console.log('Updated allMetadata:', JSON.stringify(allMetadata, null, 2));
+
+        // Write the updated metadata back to the file
+        try {
+            fs.writeFileSync(metadataFilepath, JSON.stringify(allMetadata, null, 2));
+            console.log('Saved metadata to:', metadataFilepath);
+        } catch (error) {
+            console.error('Error writing to posts.json:', error.message);
+            throw new Error('Failed to save metadata to posts.json');
+        }
 
         await browser.close();
         
         res.json({
             success: true,
             filename,
-            filepath: `/images/${monthFolder}/${filename}`
+            filepath: `/images/${monthFolder}/${filename}`,
+            metadata
         });
 
     } catch (error) {
